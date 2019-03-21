@@ -1,6 +1,4 @@
 # Login to Office 365 MSOnline first
-Uninstall-Module UniversalDashboard.Community -Force
-Install-Module UniversalDashboard.Community -AcceptLicense -Force
 $Theme = Get-UDTheme Azure
 $Company = 'Template'
 
