@@ -2,64 +2,58 @@
 $Theme = Get-UDTheme Azure
 $Company = 'Template'
 
-$Sku = @{
-    'DESKLESSPACK' = 'Office 365 (Plan K1)'
-    'DESKLESSWOFFPACK' = 'Office 365 (Plan K2)'
-    'FLOW_FREE' = 'Flow Free'
-    'LITEPACK' = 'Office 365 (Plan P1)'
-    'EXCHANGESTANDARD' = 'Office 365 Exchange Online Only'
-    'STANDARDPACK' = 'Enterprise Plan E1'
-    'STANDARDWOFFPACK' = 'Office 365 (Plan E2)'
-    'ENTERPRISEPACK' = 'Enterprise Plan E3'
-    'ENTERPRISEPACKLRG' = 'Enterprise Plan E3'
-    'ENTERPRISEWITHSCAL' = 'Enterprise Plan E4'
-    'STANDARDPACK_STUDENT' = 'Office 365 (Plan A1) for Students'
-    'STANDARDWOFFPACKPACK_STUDENT' = 'Office 365 (Plan A2) for Students'
-    'ENTERPRISEPACK_STUDENT' = 'Office 365 (Plan A3) for Students'
-    'ENTERPRISEWITHSCAL_STUDENT' = 'Office 365 (Plan A4) for Students'
-    'STANDARDPACK_FACULTY' = 'Office 365 (Plan A1) for Faculty'
-    'STANDARDWOFFPACKPACK_FACULTY' = 'Office 365 (Plan A2) for Faculty'
-    'ENTERPRISEPACK_FACULTY' = 'Office 365 (Plan A3) for Faculty'
-    'ENTERPRISEWITHSCAL_FACULTY' = 'Office 365 (Plan A4) for Faculty'
-    'ENTERPRISEPACK_B_PILOT' = 'Office 365 (Enterprise Preview)'
-    'STANDARD_B_PILOT' = 'Office 365 (Small Business Preview)'
-    'VISIOCLIENT' = 'Visio Pro Online'
-    'POWER_BI_ADDON' = 'Office 365 Power BI Addon'
-    'POWER_BI_INDIVIDUAL_USE' = 'Power BI Individual User'
-    'POWER_BI_STANDALONE' = 'Power BI Stand Alone'
-    'POWER_BI_STANDARD' = 'Power-BI standard'
-    'PROJECTESSENTIALS' = 'Project Lite'
-    'PROJECTCLIENT' = 'Project Professional'
-    'PROJECTONLINE_PLAN_1' = 'Project Online'
-    'PROJECTONLINE_PLAN_2' = 'Project Online and PRO'
-    'ECAL_SERVICES' = 'ECAL'
-    'EMS' = 'Enterprise Mobility Suite'
-    'RIGHTSMANAGEMENT_ADHOC' = 'Windows Azure Rights Management'
-    'MCOMEETADV' = 'PSTN conferencing'
-    'SHAREPOINTSTORAGE' = 'SharePoint storage'
-    'PLANNERSTANDALONE' = 'Planner Standalone'
-    'CRMIUR' = 'CMRIUR'
-    'BI_AZURE_P1' = 'Power BI Reporting and Analytics'
-    'INTUNE_A' = 'Windows Intune Plan A'
-}
-
 function ConvertLicenseString {
-    $String = $args[0] -Replace 'reseller-account:', ''
+    # Remove first set of characters matching "$STRING:"
+    $String = $args[0] -Replace '^[^:]+:\s*', ''
+    # Rename licenses to human-readable format
     switch ($String) {
-        'STANDARDPACK' {'E[1]'}
-        'ENTERPRISEPACK' {'E[3]'}
-        'PROJECTCLIENT' {'Project'}
-        'VISIOCLIENT' {'Visio'}
-        'MCOMEETADV' {'Skype PSTN'}
-        'FLOW_FREE' {'Flow'}
-        default {'None'}
+        'DESKLESSPACK'                      {'K[1]'}
+        'DESKLESSWOFFPACK'                  {'K[2]'}
+        'FLOW_FREE'                         {'Flow Free'}
+        'LITEPACK'                          {'{P[1]'}
+        'EXCHANGESTANDARD'                  {'Exchange Online'}
+        'STANDARDPACK'                      {'E[1]'}
+        'STANDARDWOFFPACK'                  {'E[2]'}
+        'ENTERPRISEPACK'                    {'E[3]'}
+        'ENTERPRISEPACKLRG'                 {'E[3]'}
+        'ENTERPRISEWITHSCAL'                {'E[4]'}
+        'STANDARDPACK_STUDENT'              {'A[1] for Students'}
+        'STANDARDWOFFPACKPACK_STUDENT'      {'A[2] for Students'}
+        'ENTERPRISEPACK_STUDENT'            {'A[3] for Students'}
+        'ENTERPRISEWITHSCAL_STUDENT'        {'A[4] for Students'}
+        'STANDARDPACK_FACULTY'              {'A[1] for Faculty'}
+        'STANDARDWOFFPACKPACK_FACULTY'      {'A[2] for Faculty'}
+        'ENTERPRISEPACK_FACULTY'            {'A[3] for Faculty'}
+        'ENTERPRISEWITHSCAL_FACULTY'        {'A[4] for Faculty'}
+        'ENTERPRISEPACK_B_PILOT'            {'Enterprise Preview'}
+        'STANDARD_B_PILOT'                  {'Small Business Preview'}
+        'VISIOCLIENT'                       {'Visio'}
+        'POWER_BI_ADDON'                    {'Power BI Addon'}
+        'POWER_BI_INDIVIDUAL_USE'           {'Power BI Individual'}
+        'POWER_BI_STANDALONE'               {'Power BI Stand Alone'}
+        'POWER_BI_STANDARD'                 {'Power-BI Standard'}
+        'PROJECTESSENTIALS'                 {'Project Lite'}
+        'PROJECTCLIENT'                     {'Project Professional'}
+        'PROJECTONLINE_PLAN_1'              {'Project P[1]'}
+        'PROJECTONLINE_PLAN_2'              {'Project P[2]'}
+        'ECAL_SERVICES'                     {'ECAL'}
+        'EMS'                               {'Enterprise Mobility Suite'}
+        'RIGHTSMANAGEMENT_ADHOC'            {'Windows Azure Rights Management'}
+        'MCOMEETADV'                        {'Skype'}
+        'SHAREPOINTSTORAGE'                 {'SharePoint'}
+        'PLANNERSTANDALONE'                 {'Planner'}
+        'CRMIUR'                            {'CMRIUR'}
+        'BI_AZURE_P1'                       {'Power BI Reporting and Analytics'}
+        'INTUNE_A'                          {'Windows Intune Plan A'}
+        'MICROSOFT_BUSINESS_CENTER'         {'Microsoft Business Center'}
+        default                             {'None'}
     }
 }
 
 $Cache:AllAccounts = Get-MsolUser -All | Select-Object DisplayName, FirstName, IsLicensed, LastName, Office, UserPrincipalName, UserType, Licenses, WhenCreated
 $Cache:AllLicenses = Get-MsolAccountSku
-$Cache:AllRecipients = Get-Recipient | Select DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
-$Cache:AllContacts = Get-MailContact | Select Name, PrimarySmtpAddress, HiddenFromAddressListEnabled
+$Cache:AllRecipients = Get-Recipient | Select-Object DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
+$Cache:AllContacts = Get-MailContact | Select-Object Name, PrimarySmtpAddress, HiddenFromAddressListEnabled
 $SortedAccounts = @()
 
 foreach ($User in $Cache:AllAccounts) {
