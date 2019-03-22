@@ -35,6 +35,7 @@ function Convert-LicenseString {
         'POWER_BI_STANDARD'                 {'Power BI Standard'}
         'PROJECTESSENTIALS'                 {'Project Lite'}
         'PROJECTCLIENT'                     {'Project Professional'}
+        'PROJECTPROFESSIONAL'               {'Project Professional'}
         'PROJECTONLINE_PLAN_1'              {'Project P[1]'}
         'PROJECTONLINE_PLAN_2'              {'Project P[2]'}
         'ECAL_SERVICES'                     {'ECAL'}
@@ -52,17 +53,18 @@ function Convert-LicenseString {
 }
 
 $Cache:AllAccounts = Get-MsolUser -All | Select-Object DisplayName, FirstName, IsLicensed, LastName, Office, UserPrincipalName, UserType, Licenses, WhenCreated
-$Cache:AllLicenses = Get-MsolAccountSku
+$Cache:AllLicenses = Get-MsolAccountSku | Where-Object {$_.ActiveUnits -lt 10000}
 $Cache:AllMailboxes = Get-Mailbox -ResultSize Unlimited | Select-Object Name, Alias, UserPrincipalName, RecipientTypeDetails, Identity, DisplayName, ProhibitSendQuota
 $Cache:AllRecipients = Get-Recipient -ResultSize Unlimited | Select-Object DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
 $Cache:AllContacts = Get-MailContact -ResultSize Unlimited | Select-Object Name, PrimarySmtpAddress, HiddenFromAddressListEnabled, DistinguishedName
 $Cache:AllGroups = Get-DistributionGroup | Select-Object Name, DisplayName, PrimarySmtpAddress
 
 $SortedAccounts = @()
+$SortedLicenses = @()
 
 foreach ($User in $Cache:AllAccounts) {
     $Licenses = $User.Licenses
-    $LicenseArray = $Licenses | ForEach-Object {Convert-LicenseString($_.AccountSkuID)} | Sort-Object
+    $LicenseArray = $Licenses | ForEach-Object {Convert-LicenseString($_.AccountSkuId)} | Sort-Object
     $LicenseString = $LicenseArray -join ', '
     $LicensedSharedMailboxProperties = [PSCustomObject][Ordered]@{
         DisplayName       = $User.DisplayName
@@ -76,9 +78,21 @@ foreach ($User in $Cache:AllAccounts) {
     $SortedAccounts += $LicensedSharedMailboxProperties
 }
 
-$Cache:SortedAccounts = $SortedAccounts
+foreach ($License in $Cache:AllLicenses) {
+    $LicenseName = $License | ForEach-Object {Convert-LicenseString($_.AccountSkuId)}
+    $AllLicenseProperties = [PSCustomObject]@{
+        License = $LicenseName
+        UsedLicenses = $License.ActiveUnits
+        AvailableLicenses = ($License.ActiveUnits - $License.ConsumedUnits)
+    }
 
-$OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
+    $SortedLicenses += $AllLicenseProperties
+}
+
+$Cache:SortedAccounts = $SortedAccounts
+$Cache:SortedLicenses = $SortedLicenses
+
+$AccountPage = New-UDPage -Name "Accounts" -Icon home -Content {
     New-UDRow {
         New-UDColumn -Size 5 {
             New-UDLayout -Columns 3 {
@@ -122,7 +136,7 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
     New-UDElement -Id 'AccountGrid' -Tag div -Endpoint {
         New-UDRow {
             if ($Session:GridSelection -eq 'All') {
-                New-UDGrid -Title "Internal Users" -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address', 'Licenses', 'Details') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses', 'Details') -Endpoint {
+                New-UDGrid -Title "Internal Users" -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address', 'Licenses') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses') -Endpoint {
                     $Cache:SortedAccounts | Out-UDGridData
                 }
             }
@@ -148,6 +162,28 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
     }
 }
 
+$LicensePage = New-UDPage -Name "Licenses" -Content {
+    New-UDChart -Type Bar -Endpoint {
+        $Cache:SortedLicenses | Out-UDChartData -LabelProperty 'License' -DataSet @(
+            New-UDChartDataset -DataProperty 'UsedLicenses' -Label 'Used Licenses' -BackgroundColor '#80962F23' -HoverBackgroundColor '#80962F23'
+            New-UDChartDataset -DataProperty 'AvailableLicenses' -Label 'Available Licenses' -BackgroundColor '#8014558C' -HoverBackgroundColor '#8014558C'
+        )
+    } -Labels @('Licenses') -Options @{
+        scales = @{
+            xAxes = @(
+                @{
+                    stacked = $true
+                }
+            )
+            yAxes = @(
+                @{
+                    stacked = $true
+                }
+            )
+        }
+    }
+}
+
 Get-UDDashboard | Stop-UDDashboard
-$Dashboard = New-UDDashboard -Title "$Company Office365 Dashboard" -Theme $Theme -Pages @($OfficePage)
+$Dashboard = New-UDDashboard -Title "$Company Office365 Dashboard" -Theme $Theme -Pages @($AccountPage, $LicensePage)
 Start-UDDashboard -Port 10000 -Dashboard $Dashboard
