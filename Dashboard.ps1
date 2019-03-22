@@ -55,7 +55,9 @@ $Cache:AllAccounts = Get-MsolUser -All | Select-Object DisplayName, FirstName, I
 $Cache:AllLicenses = Get-MsolAccountSku
 $Cache:AllMailboxes = Get-Mailbox -ResultSize Unlimited | Select-Object Name, Alias, UserPrincipalName, RecipientTypeDetails, Identity, DisplayName, ProhibitSendQuota
 $Cache:AllRecipients = Get-Recipient -ResultSize Unlimited | Select-Object DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
-$Cache:AllContacts = Get-MailContact -ResultSize Unlimited | Select-Object Name, PrimarySmtpAddress, HiddenFromAddressListEnabled
+$Cache:AllContacts = Get-MailContact -ResultSize Unlimited | Select-Object Name, PrimarySmtpAddress, HiddenFromAddressListEnabled, DistinguishedName
+$Cache:AllGroups = Get-DistributionGroup | Select-Object Name, DisplayName, PrimarySmtpAddress
+
 $SortedAccounts = @()
 
 foreach ($User in $Cache:AllAccounts) {
@@ -120,8 +122,27 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
     New-UDElement -Id 'AccountGrid' -Tag div -Endpoint {
         New-UDRow {
             if ($Session:GridSelection -eq 'All') {
-                New-UDGrid -Title "Internal Users" -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address', 'Licenses') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses') -Endpoint {
-                    $Cache:SortedAccounts | Out-UDGridData
+                New-UDGrid -Title "Internal Users" -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address', 'Licenses', 'Details') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses', 'Details') -Endpoint {
+                    $Cache:SortedAccounts | ForEach-Object {
+                        [PSCustomObject]@{
+                            DisplayName = $_.DisplayName
+                            UserPrincipalName = $_.UserPrincipalName
+                            Licenses = $_.Licenses
+                            Details = New-UDButton -OnClick (New-UDEndpoint -Endpoint {
+                                Show-UDModal -Content {
+                                    New-UDTable -Headers @('Groups') -Properties @('DisplayName') -Content {
+                                        $Cache:SortedAccounts | ForEach-Object {
+                                            $UserDN = $_.DistinguishedName
+                                            
+                                            [PSCustomObject]@{
+                                                Groups = (Get-DistributionGroup -ResultSize Unlimited -Filter "Members -like $UserDN" | Select-Object Name)
+                                            }
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    } | Out-UDGridData
                 }
             }
 
@@ -132,7 +153,7 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
             }
 
             if ($Session:GridSelection -eq 'Contacts') {
-                New-UDGrid -Title 'Contacts' -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address') -Properties @('Name', 'PrimarySmtpAddress') -AutoRefresh -RefreshInterval 300 -Endpoint {
+                New-UDGrid -Title 'Contacts' -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address') -Properties @('Name', 'PrimarySmtpAddress') -Endpoint {
                     $Cache:AllContacts | Out-UDGridData
                 }
             }
