@@ -2,7 +2,7 @@
 $Theme = Get-UDTheme Azure
 $Company = 'Template'
 
-function ConvertLicenseString {
+function Convert-LicenseString {
     # Remove first set of characters matching "$STRING:"
     $String = $args[0] -Replace '^[^:]+:\s*', ''
     # Rename licenses to human-readable format
@@ -12,6 +12,7 @@ function ConvertLicenseString {
         'FLOW_FREE'                         {'Flow Free'}
         'LITEPACK'                          {'{P[1]'}
         'EXCHANGESTANDARD'                  {'Exchange Online'}
+        'O365_BUSINESS_ESSENTIALS'          {'Business Essentials'}
         'STANDARDPACK'                      {'E[1]'}
         'STANDARDWOFFPACK'                  {'E[2]'}
         'ENTERPRISEPACK'                    {'E[3]'}
@@ -30,8 +31,8 @@ function ConvertLicenseString {
         'VISIOCLIENT'                       {'Visio'}
         'POWER_BI_ADDON'                    {'Power BI Addon'}
         'POWER_BI_INDIVIDUAL_USE'           {'Power BI Individual'}
-        'POWER_BI_STANDALONE'               {'Power BI Stand Alone'}
-        'POWER_BI_STANDARD'                 {'Power-BI Standard'}
+        'POWER_BI_STANDALONE'               {'Power BI Stand-Alone'}
+        'POWER_BI_STANDARD'                 {'Power BI Standard'}
         'PROJECTESSENTIALS'                 {'Project Lite'}
         'PROJECTCLIENT'                     {'Project Professional'}
         'PROJECTONLINE_PLAN_1'              {'Project P[1]'}
@@ -46,19 +47,20 @@ function ConvertLicenseString {
         'BI_AZURE_P1'                       {'Power BI Reporting and Analytics'}
         'INTUNE_A'                          {'Windows Intune Plan A'}
         'MICROSOFT_BUSINESS_CENTER'         {'Microsoft Business Center'}
-        default                             {'None'}
+        default                             {'Unknown'}
     }
 }
 
 $Cache:AllAccounts = Get-MsolUser -All | Select-Object DisplayName, FirstName, IsLicensed, LastName, Office, UserPrincipalName, UserType, Licenses, WhenCreated
 $Cache:AllLicenses = Get-MsolAccountSku
-$Cache:AllRecipients = Get-Recipient | Select-Object DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
-$Cache:AllContacts = Get-MailContact | Select-Object Name, PrimarySmtpAddress, HiddenFromAddressListEnabled
+$Cache:AllMailboxes = Get-Mailbox -ResultSize Unlimited | Select-Object Name, Alias, UserPrincipalName, RecipientTypeDetails, Identity, DisplayName, ProhibitSendQuota
+$Cache:AllRecipients = Get-Recipient -ResultSize Unlimited | Select-Object DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
+$Cache:AllContacts = Get-MailContact -ResultSize Unlimited | Select-Object Name, PrimarySmtpAddress, HiddenFromAddressListEnabled
 $SortedAccounts = @()
 
 foreach ($User in $Cache:AllAccounts) {
     $Licenses = $User.Licenses
-    $LicenseArray = $Licenses | ForEach-Object {ConvertLicenseString($_.AccountSkuID)}
+    $LicenseArray = $Licenses | ForEach-Object {Convert-LicenseString($_.AccountSkuID)} | Sort-Object
     $LicenseString = $LicenseArray -join ', '
     $LicensedSharedMailboxProperties = [PSCustomObject][Ordered]@{
         DisplayName       = $User.DisplayName
@@ -108,6 +110,11 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
             $Session:GridSelection = 'Contacts'
             Sync-UDElement -Id 'AccountGrid'
         }
+
+        New-UDButton -Text 'Shared Mailboxes' -OnClick {
+            $Session:GridSelection = 'Shared'
+            Sync-UDElement -Id 'AccountGrid'
+        }
     }
     
     New-UDElement -Id 'AccountGrid' -Tag div -Endpoint {
@@ -125,14 +132,20 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
             }
 
             if ($Session:GridSelection -eq 'Contacts') {
-                New-UDGrid -Title 'Contacts' -Headers @('Name', 'Email Address') -Properties ('Name', 'PrimarySmtpAddress') -AutoRefresh -RefreshInterval 300 -Endpoint {
+                New-UDGrid -Title 'Contacts' -Headers @('Name', 'Email Address') -Properties @('Name', 'PrimarySmtpAddress') -AutoRefresh -RefreshInterval 300 -Endpoint {
                     $Cache:AllContacts | Out-UDGridData
                 }
             }
+            
+            if ($Session:GridSelection -eq 'Shared') {
+                New-UDGrid -Title 'Shared Mailboxes' -Headers @('Name', 'Email Address') -Properties @('Name', 'UserPrincipalName') -Endpoint {
+                    $Cache:AllMailboxes | Where-Object {$_.RecipientTypeDetails -eq 'SharedMailbox'} | Out-UDGridData
+                }
+            }
         }
-    }      
+    }
 }
     
 Get-UDDashboard | Stop-UDDashboard
-$Dashboard = New-UDDashboard -Title "$Company Dashboard" -Theme $Theme -Pages @($OfficePage)
+$Dashboard = New-UDDashboard -Title "$Company Office365 Dashboard" -Theme $Theme -Pages @($OfficePage)
 Start-UDDashboard -Port 10000 -Dashboard $Dashboard
