@@ -123,26 +123,7 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
         New-UDRow {
             if ($Session:GridSelection -eq 'All') {
                 New-UDGrid -Title "Internal Users" -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address', 'Licenses', 'Details') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses', 'Details') -Endpoint {
-                    $Cache:SortedAccounts | ForEach-Object {
-                        [PSCustomObject]@{
-                            DisplayName = $_.DisplayName
-                            UserPrincipalName = $_.UserPrincipalName
-                            Licenses = $_.Licenses
-                            Details = New-UDButton -OnClick (New-UDEndpoint -Endpoint {
-                                Show-UDModal -Content {
-                                    New-UDTable -Headers @('Groups') -Properties @('DisplayName') -Content {
-                                        $Cache:SortedAccounts | ForEach-Object {
-                                            $UserDN = $_.DistinguishedName
-                                            
-                                            [PSCustomObject]@{
-                                                Groups = (Get-DistributionGroup -ResultSize Unlimited -Filter "Members -like $UserDN" | Select-Object Name)
-                                            }
-                                        }
-                                    }
-                                }
-                            })
-                        }
-                    } | Out-UDGridData
+                    $Cache:SortedAccounts | Out-UDGridData
                 }
             }
 
