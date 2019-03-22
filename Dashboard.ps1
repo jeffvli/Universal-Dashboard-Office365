@@ -126,26 +126,26 @@ $OfficePage = New-UDPage -Name "Office 365" -Icon home -Content {
             }
 
             if ($Session:GridSelection -eq 'Licensed') {
-                New-UDGrid -Title 'Licensed Users' -Headers @('Name', 'Email Address', 'Licenses') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses') -Endpoint {
+                New-UDGrid -Title 'Licensed Users' -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address', 'Licenses') -Properties @('DisplayName', 'UserPrincipalName', 'Licenses') -Endpoint {
                     ($Cache:SortedAccounts | Where-Object {$_.IsLicensed -eq $true}) | Out-UDGridData
                 }
             }
 
             if ($Session:GridSelection -eq 'Contacts') {
-                New-UDGrid -Title 'Contacts' -Headers @('Name', 'Email Address') -Properties @('Name', 'PrimarySmtpAddress') -AutoRefresh -RefreshInterval 300 -Endpoint {
+                New-UDGrid -Title 'Contacts' -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address') -Properties @('Name', 'PrimarySmtpAddress') -AutoRefresh -RefreshInterval 300 -Endpoint {
                     $Cache:AllContacts | Out-UDGridData
                 }
             }
             
             if ($Session:GridSelection -eq 'Shared') {
-                New-UDGrid -Title 'Shared Mailboxes' -Headers @('Name', 'Email Address') -Properties @('Name', 'UserPrincipalName') -Endpoint {
+                New-UDGrid -Title 'Shared Mailboxes' -AutoRefresh -RefreshInterval 300 -Headers @('Name', 'Email Address') -Properties @('Name', 'UserPrincipalName') -Endpoint {
                     $Cache:AllMailboxes | Where-Object {$_.RecipientTypeDetails -eq 'SharedMailbox'} | Out-UDGridData
                 }
             }
         }
     }
 }
-    
+
 Get-UDDashboard | Stop-UDDashboard
 $Dashboard = New-UDDashboard -Title "$Company Office365 Dashboard" -Theme $Theme -Pages @($OfficePage)
 Start-UDDashboard -Port 10000 -Dashboard $Dashboard
