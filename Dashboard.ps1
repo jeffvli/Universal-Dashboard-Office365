@@ -132,7 +132,7 @@ function Convert-LicenseString {
     }
 }
 
-$Cache:AllAccounts = Get-MsolUser -All | Select-Object DisplayName, FirstName, IsLicensed, LastName, Office, UserPrincipalName, UserType, Licenses, WhenCreated
+$Cache:AllAccounts = Get-MsolUser -All | Select-Object DisplayName, FirstName, IsLicensed, LastName, Office, UserPrincipalName, UserType, Licenses, WhenCreated, EnabledFilter
 $Cache:AllLicenses = Get-MsolAccountSku | Where-Object {$_.ActiveUnits -lt 10000 -and $_.ActiveUnits -ne 0}
 $Cache:AllMailboxes = Get-Mailbox -ResultSize Unlimited | Select-Object Name, Alias, UserPrincipalName, RecipientTypeDetails, Identity, DisplayName, ProhibitSendQuota
 $Cache:AllRecipients = Get-Recipient -ResultSize Unlimited | Select-Object DisplayName, PrimarySmtpAddress, RecipientTypeDetails, WhenCreated
@@ -175,7 +175,7 @@ $Cache:SortedLicenses = $SortedLicenses
 $AccountPage = New-UDPage -Name "Accounts" -Icon home -Content {
     New-UDRow {
         New-UDColumn -Size 5 {
-            New-UDLayout -Columns 3 {
+            New-UDLayout -Columns 4 {
                 New-UDCounter -Title 'Total Accounts' -AutoRefresh -RefreshInterval 300 -TextSize Large -TextAlignment center -Endpoint {
                     $Cache:AllAccounts.Count | ConvertTo-Json
                 }
@@ -186,6 +186,10 @@ $AccountPage = New-UDPage -Name "Accounts" -Icon home -Content {
 
                 New-UDCounter -Title 'Shared Mailboxes' -AutoRefresh -RefreshInterval 300 -TextSize Large -TextAlignment center -Endpoint {
                     ($Cache:AllRecipients | Where-Object {$_.RecipientTypeDetails -eq 'SharedMailbox'}).Count | ConvertTo-Json
+                }
+
+                New-UDCounter -Title 'Disabled Accounts' -AutoRefresh -RefreshInterval 300 -TextSize Large -TextAlignment center -Endpoint {
+                    ($Cache:AllAccounts.Count) | Where-Object {$_.EnabledFilter }
                 }
             }
         }
