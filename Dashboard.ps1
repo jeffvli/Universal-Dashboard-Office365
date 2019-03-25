@@ -1,5 +1,5 @@
 # Login to Office 365 MSOnline first
-$Theme = Get-UDTheme Azure
+$Theme = Get-UDTheme default
 $Company = 'Template'
 
 function Convert-LicenseString {
