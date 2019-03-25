@@ -7,7 +7,7 @@ function Convert-LicenseString {
         'O365_BUSINESS_ESSENTIALS'              {'Office365BusinessEssentials'}
         'O365_BUSINESS_PREMIUM'                 {'Office365BusinessPremium'}
         'DESKLESSPACK'                          {'Office365(PlanK1)'}
-        'DESKLESSWOFFPACK'				        {'Office365(PlanK2)'}
+        'DESKLESSWOFFPACK'                      {'Office365(PlanK2)'}
         'LITEPACK'						        {'Office365(PlanP1)'}
         'EXCHANGESTANDARD'				        {'Office365ExchangeOnlineOnly'}
         'STANDARDPACK'					        {'EnterprisePlanE1'}
@@ -118,10 +118,10 @@ function Convert-LicenseString {
         'MCOPSTN2'						        {'DomesticandInternationalCallingPlan'}
         'FLOW_P1'						        {'MicrosoftFlowPlan1'}
         'FLOW_P2'						        {'MicrosoftFlowPlan2'}
-        'CRMSTORAGE'						    {'MicrosoftDynamicsCRMOnlineAdditionalStorage'}
+        'CRMSTORAGE'{'MicrosoftDynamicsCRMOnlineAdditionalStorage'}
         'SMB_APPS'						        {'MicrosoftBusinessApps'}
         'MICROSOFT_BUSINESS_CENTER'		        {'MicrosoftBusinessCenter'}
-        'DYN365_TEAM_MEMBERS'			        {'Dynamics365TeamMembers'}
+        'DYN365_TEAM_MEMBERS'                   {'Dynamics365TeamMembers'}
         'STREAM'							    {'MicrosoftStreamTrial'}
         'EMSPREMIUM'                            {'ENTERPRISEMOBILITY+SECURITYE5'}
         default                                 {'Unknown'}
