@@ -11,6 +11,6 @@ An Office 365 client dashboard built using [Universal Dashboard](https://github.
 
 ## To do
 - [x] Accounts/Mailbox page
-- [ ] Licenses page
+- [x] Licenses page
 - [ ] Distribution lists/Groups page
 - [ ] User authentication
