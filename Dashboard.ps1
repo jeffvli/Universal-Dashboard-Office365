@@ -266,19 +266,6 @@ $LicensePage = New-UDPage -Name "Licenses" -Content {
             }
         }
     }
-<#
-    foreach ($License in $Cache:SortedLicenses) {
-        New-UDCounter -Title "($License.AccountSkuId) Assigned" -AutoRefresh -RefreshInterval 300 -TextSize Small -TextAlignment center -Endpoint {
-            $License.UsedLicenses | ConvertTo-Json
-        }
-    }
-
-    foreach ($License in $Cache:SortedLicenses) {
-        New-UDCounter -Title "$License.AccountSkuId Available" -AutoRefresh -RefreshInterval 300 -TextSize Small -TextAlignment center -Endpoint {
-            $License.AvailableLicenses | ConvertTo-Json
-        }
-    }
-#>
 }
 
 Get-UDDashboard | Stop-UDDashboard
