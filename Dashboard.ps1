@@ -187,10 +187,6 @@ $AccountPage = New-UDPage -Name "Accounts" -Icon home -Content {
                 New-UDCounter -Title 'Shared Mailboxes' -AutoRefresh -RefreshInterval 300 -TextSize Large -TextAlignment center -Endpoint {
                     ($Cache:AllRecipients | Where-Object {$_.RecipientTypeDetails -eq 'SharedMailbox'}).Count | ConvertTo-Json
                 }
-
-                New-UDCounter -Title 'Disabled Accounts' -AutoRefresh -RefreshInterval 300 -TextSize Large -TextAlignment center -Endpoint {
-                    ($Cache:AllAccounts.Count) | Where-Object {$_.EnabledFilter }
-                }
             }
         }
     }
@@ -266,6 +262,19 @@ $LicensePage = New-UDPage -Name "Licenses" -Content {
             )
         }
     }
+<#
+    foreach ($License in $Cache:SortedLicenses) {
+        New-UDCounter -Title "($License.AccountSkuId) Assigned" -AutoRefresh -RefreshInterval 300 -TextSize Small -TextAlignment center -Endpoint {
+            $License.UsedLicenses | ConvertTo-Json
+        }
+    }
+
+    foreach ($License in $Cache:SortedLicenses) {
+        New-UDCounter -Title "$License.AccountSkuId Available" -AutoRefresh -RefreshInterval 300 -TextSize Small -TextAlignment center -Endpoint {
+            $License.AvailableLicenses | ConvertTo-Json
+        }
+    }
+#>
 }
 
 Get-UDDashboard | Stop-UDDashboard
