@@ -1,5 +1,5 @@
 # Universal-Dashboard-Office365
-An Office 365 client dashboard built using [Universal Dashboard](https://github.com/ironmansoftware/universal-dashboard). Made to give to the client to have a general overview of their Office 365 environment.
+A proof of concept Office 365 client dashboard built using [Universal Dashboard](https://github.com/ironmansoftware/universal-dashboard).
 
 ![demoaccounts](https://i.imgur.com/u4doWnk.png)
 ![demolicense](https://i.imgur.com/BRnW4OP.png)
