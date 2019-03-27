@@ -5,6 +5,7 @@ A proof of concept Office 365 client dashboard built using [Universal Dashboard]
 ![demolicense](https://i.imgur.com/BRnW4OP.png)
 
 ## How to use
+Connect to Exchange Online with an admin account. To connect to a tenant, add the -TenantID paremeter to all Exchange Online cmdlets.
 
 ### Prequisites
 - PowerShell Universal Dashboard Module
